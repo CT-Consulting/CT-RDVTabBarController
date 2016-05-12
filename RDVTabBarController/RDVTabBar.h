@@ -39,7 +39,7 @@
 
 @end
 
-@interface RDVTabBar : UIView
+@interface RDVTabBar : UIScrollView
 
 /**
  * The tab bar’s delegate object.
@@ -55,6 +55,11 @@
  * The currently selected item on the tab bar.
  */
 @property (nonatomic, weak) RDVTabBarItem *selectedItem;
+
+/**
+ * The maximum number of visible items on the tab bar, default value is 6.
+ */
+@property (nonatomic, assign) NSUInteger maximumVisibleItems;
 
 /**
  * backgroundView stays behind tabBar's items. If you want to add additional views, 

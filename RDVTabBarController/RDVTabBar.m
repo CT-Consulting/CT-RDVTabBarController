@@ -33,6 +33,8 @@
 
 @implementation RDVTabBar
 
+@synthesize maximumVisibleItems = _maximumVisibleItems;
+
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
@@ -64,11 +66,15 @@
     CGSize frameSize = self.frame.size;
     CGFloat minimumContentHeight = [self minimumContentHeight];
     
+    NSInteger numberOfVisibleItems = ([[self items] count] > [self maximumVisibleItems]) ? [self maximumVisibleItems] : [[self items] count];
+    CGFloat contentViewWidth =  frameSize.width + frameSize.width / numberOfVisibleItems * ([[self items] count] - numberOfVisibleItems);
+    [self setContentSize:CGSizeMake(contentViewWidth, frameSize.height)];
+    
     [[self backgroundView] setFrame:CGRectMake(0, frameSize.height - minimumContentHeight,
                                             frameSize.width, frameSize.height)];
     
     [self setItemWidth:roundf((frameSize.width - [self contentEdgeInsets].left -
-                               [self contentEdgeInsets].right) / [[self items] count])];
+                               [self contentEdgeInsets].right) / numberOfVisibleItems)];
     
     NSInteger index = 0;
     
@@ -126,6 +132,25 @@
     }
     
     return minimumTabBarContentHeight;
+}
+
+- (NSUInteger)maximumVisibleItems {
+    
+    if (_maximumVisibleItems > 0) {
+        return _maximumVisibleItems;
+    }
+    
+    return 6;
+}
+
+- (void)setMaximumVisibleItems:(NSUInteger)maximumVisibleItems {
+    
+    if (maximumVisibleItems > 0) {
+        _maximumVisibleItems = maximumVisibleItems;
+        return;
+    }
+    
+    _maximumVisibleItems = 6;
 }
 
 #pragma mark - Item selection
