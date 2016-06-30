@@ -73,8 +73,12 @@
     [[self backgroundView] setFrame:CGRectMake(0, frameSize.height - minimumContentHeight,
                                             frameSize.width, frameSize.height)];
     
-    [self setItemWidth:roundf((frameSize.width - [self contentEdgeInsets].left -
-                               [self contentEdgeInsets].right) / numberOfVisibleItems)];
+    CGFloat fullItemWidth = roundf((frameSize.width - [self contentEdgeInsets].left -
+                                    [self contentEdgeInsets].right) / numberOfVisibleItems);
+    CGFloat rightOffset = ([[self items] count] > [self maximumVisibleItems]) ? fullItemWidth / 2 : 0;
+    CGFloat itemWidth = roundf((frameSize.width - [self contentEdgeInsets].left -
+                                [self contentEdgeInsets].right - rightOffset) / numberOfVisibleItems);
+    [self setItemWidth:itemWidth];
     
     NSInteger index = 0;
     
