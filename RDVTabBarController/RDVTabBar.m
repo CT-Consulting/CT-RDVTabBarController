@@ -63,22 +63,25 @@
 }
 
 - (void)layoutSubviews {
+    // Подготовка значений
     CGSize frameSize = self.frame.size;
-    CGFloat minimumContentHeight = [self minimumContentHeight];
+    CGFloat numberOfVisibleItems = ([[self items] count] > [self maximumVisibleItems]) ? [self maximumVisibleItems] : [[self items] count];
     
-    NSInteger numberOfVisibleItems = ([[self items] count] > [self maximumVisibleItems]) ? [self maximumVisibleItems] : [[self items] count];
-    CGFloat contentViewWidth =  frameSize.width + frameSize.width / numberOfVisibleItems * ([[self items] count] - numberOfVisibleItems);
-    [self setContentSize:CGSizeMake(contentViewWidth, frameSize.height)];
-    
-    [[self backgroundView] setFrame:CGRectMake(0, frameSize.height - minimumContentHeight,
-                                            frameSize.width, frameSize.height)];
-    
+    // Размеры таба
     CGFloat fullItemWidth = roundf((frameSize.width - [self contentEdgeInsets].left -
                                     [self contentEdgeInsets].right) / numberOfVisibleItems);
     CGFloat rightOffset = ([[self items] count] > [self maximumVisibleItems]) ? fullItemWidth / 2 : 0;
     CGFloat itemWidth = roundf((frameSize.width - [self contentEdgeInsets].left -
                                 [self contentEdgeInsets].right - rightOffset) / numberOfVisibleItems);
     [self setItemWidth:itemWidth];
+    
+    // Размеры скролла
+    CGFloat contentViewWidth = self.itemWidth * [[self items] count];
+    [self setContentSize:CGSizeMake(contentViewWidth, frameSize.height)];
+    
+    // Размеры бэкграунда
+    [[self backgroundView] setFrame:CGRectMake(0, frameSize.height - [self minimumContentHeight],
+                                               frameSize.width, frameSize.height)];
     
     NSInteger index = 0;
     
