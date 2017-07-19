@@ -25,7 +25,7 @@
 
 @class RDVTabBar, RDVTabBarItem;
 
-@protocol RDVTabBarDelegate <NSObject>
+@protocol RDVTabBarDelegate <UIScrollViewDelegate>
 
 /**
  * Asks the delegate if the specified tab bar item should be selected.
