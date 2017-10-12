@@ -217,7 +217,7 @@
         
         CGFloat bottomInsets = 0.0f;
         // поднимаем tabBar над линией Home
-        if ([UIDevice.currentDevice.systemVersion compare:@"11.0" options:NSNumericSearch] != NSOrderedAscending) {
+        if (@available(iOS 11.0, *)) {
             bottomInsets = weakSelf.tabBar.superview.safeAreaInsets.bottom;
         }
         [[weakSelf tabBar] setFrame:CGRectMake(0, tabBarStartingY-bottomInsets, viewSize.width, tabBarHeight)];
