@@ -48,6 +48,8 @@
     
     [self.view addSubview:[self contentView]];
     [self.view addSubview:[self tabBar]];
+    
+    self.view.backgroundColor = [UIColor whiteColor];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -213,7 +215,12 @@
             [[weakSelf tabBar] setHidden:NO];
         }
         
-        [[weakSelf tabBar] setFrame:CGRectMake(0, tabBarStartingY, viewSize.width, tabBarHeight)];
+        CGFloat bottomInsets = 0.0f;
+        // поднимаем tabBar над линией Home
+        if ([UIDevice.currentDevice.systemVersion compare:@"11.0" options:NSNumericSearch] != NSOrderedAscending) {
+            bottomInsets = weakSelf.tabBar.superview.safeAreaInsets.bottom;
+        }
+        [[weakSelf tabBar] setFrame:CGRectMake(0, tabBarStartingY-bottomInsets, viewSize.width, tabBarHeight)];
         [[weakSelf contentView] setFrame:CGRectMake(0, 0, viewSize.width, contentViewHeight)];
     };
     

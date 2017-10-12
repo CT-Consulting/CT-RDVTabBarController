@@ -81,7 +81,7 @@
     
     // Размеры бэкграунда
     [[self backgroundView] setFrame:CGRectMake(0, frameSize.height - [self minimumContentHeight],
-                                               frameSize.width, frameSize.height)];
+                                               contentViewWidth, frameSize.height)];
     
     NSInteger index = 0;
     
@@ -96,7 +96,7 @@
         
         [item setFrame:CGRectMake(self.contentEdgeInsets.left + (index * self.itemWidth),
                                   roundf(frameSize.height - itemHeight) - self.contentEdgeInsets.top,
-                                  self.itemWidth, itemHeight - self.contentEdgeInsets.bottom)];
+                                  self.itemWidth, itemHeight - self.contentEdgeInsets.bottom - 1)];
         [item setNeedsDisplay];
         
         index++;
@@ -194,11 +194,7 @@
     _translucent = translucent;
     
     CGFloat alpha = (translucent ? 0.9 : 1.0);
-    
-    [_backgroundView setBackgroundColor:[UIColor colorWithRed:245/255.0
-                                                        green:245/255.0
-                                                         blue:245/255.0
-                                                        alpha:alpha]];
+    _backgroundView.backgroundColor = [self.backgroundColor colorWithAlphaComponent:alpha];
 }
 
 #pragma mark - Accessibility
