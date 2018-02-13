@@ -199,28 +199,22 @@
     
     void (^block)() = ^{
         CGSize viewSize = weakSelf.view.bounds.size;
+        CGFloat bottomPadding = (@available(iOS 11.0, *)) ? UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom : 0.0f;
+        
+        viewSize.height -= bottomPadding;
         CGFloat tabBarStartingY = viewSize.height;
         CGFloat contentViewHeight = viewSize.height;
-        CGFloat tabBarHeight = CGRectGetHeight([[weakSelf tabBar] frame]);
-        
-        if (!tabBarHeight) {
-            tabBarHeight = 49;
-        }
+        CGFloat tabBarHeight = CGRectGetHeight([[weakSelf tabBar] frame]) ?: 49;
         
         if (!weakSelf.tabBarHidden) {
-            tabBarStartingY = viewSize.height - tabBarHeight;
+            tabBarStartingY -= tabBarHeight;
             if (![[weakSelf tabBar] isTranslucent]) {
                 contentViewHeight -= ([[weakSelf tabBar] minimumContentHeight] ?: tabBarHeight);
             }
             [[weakSelf tabBar] setHidden:NO];
         }
         
-        CGFloat bottomInsets = 0.0f;
-        // поднимаем tabBar над линией Home
-        if (@available(iOS 11.0, *)) {
-            bottomInsets = weakSelf.tabBar.superview.safeAreaInsets.bottom;
-        }
-        [[weakSelf tabBar] setFrame:CGRectMake(0, tabBarStartingY-bottomInsets, viewSize.width, tabBarHeight)];
+        [[weakSelf tabBar] setFrame:CGRectMake(0, tabBarStartingY, viewSize.width, tabBarHeight)];
         [[weakSelf contentView] setFrame:CGRectMake(0, 0, viewSize.width, contentViewHeight)];
     };
     
