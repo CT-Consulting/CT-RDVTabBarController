@@ -123,7 +123,10 @@
     [self setSelectedViewController:[[self viewControllers] objectAtIndex:selectedIndex]];
     [self addChildViewController:[self selectedViewController]];
     [[[self selectedViewController] view] setFrame:[[self contentView] bounds]];
-    [[self contentView] addSubview:[[self selectedViewController] view]];
+    
+    UIView *view = [[self selectedViewController] view];
+    view.translatesAutoresizingMaskIntoConstraints = YES;
+    [[self contentView] addSubview:view];
     [[self selectedViewController] didMoveToParentViewController:self];
     
     [self setNeedsStatusBarAppearanceUpdate];
