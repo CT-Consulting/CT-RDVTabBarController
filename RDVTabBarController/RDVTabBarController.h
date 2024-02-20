@@ -84,11 +84,11 @@
 /**
  * The tab bar item that represents the view controller when added to a tab bar controller.
  */
-@property(nonatomic, setter = rdv_setTabBarItem:) RDVTabBarItem *rdv_tabBarItem;
+@property(nonatomic, nullable, setter = rdv_setTabBarItem:) RDVTabBarItem *rdv_tabBarItem;
 
 /**
  * The nearest ancestor in the view controller hierarchy that is a tab bar controller. (read-only)
  */
-@property(nonatomic, readonly) RDVTabBarController *rdv_tabBarController;
+@property (nonatomic, readonly, nullable) RDVTabBarController *rdv_tabBarController;
 
 @end

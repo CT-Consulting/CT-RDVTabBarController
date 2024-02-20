@@ -25,15 +25,20 @@
 
 @interface RDVTabBarItem () {
     NSString *_title;
-    UIOffset _imagePositionAdjustment;
-    NSDictionary *_unselectedTitleAttributes;
-    NSDictionary *_selectedTitleAttributes;
 }
+/// The offset for the rectangle around the tab bar item's content.
+@property (assign, nonatomic) UIEdgeInsets contentOffset;
+/// The offset between image view and Title Label.
+@property (assign, nonatomic) CGFloat imageTitleOffset;
+/// The title attributes dictionary used for tab bar item's unselected state.
+@property (strong, nonatomic, nullable) NSDictionary *unselectedTitleAttributes;
+/// The title attributes dictionary used for tab bar item's selected state.
+@property (strong, nonatomic, nullable) NSDictionary *selectedTitleAttributes;
 
-@property UIImage *unselectedBackgroundImage;
-@property UIImage *selectedBackgroundImage;
-@property UIImage *unselectedImage;
-@property UIImage *selectedImage;
+@property (strong, nonatomic, nullable) UIImage *unselectedBackgroundImage;
+@property (strong, nonatomic, nullable) UIImage *selectedBackgroundImage;
+@property (strong, nonatomic, nullable) UIImage *unselectedImage;
+@property (strong, nonatomic, nullable) UIImage *selectedImage;
 
 @end
 
@@ -61,140 +66,157 @@
 
 - (void)commonInitialization {
     // Setup defaults
-    
     [self setBackgroundColor:[UIColor clearColor]];
-    
     _title = @"";
-    _titlePositionAdjustment = UIOffsetZero;
+    self.contentOffset = UIEdgeInsetsMake(2, 2, 2, 2);
+    self.imageTitleOffset = 6;
+    [self setUnselectedTitleAttributes:@{ NSFontAttributeName: [UIFont systemFontOfSize:12],
+                                          NSForegroundColorAttributeName: [UIColor blackColor] }
+                    selectedAttributes:nil];
+    self.badgeBackgroundColor = [UIColor redColor];
+    self.badgeTextColor = [UIColor whiteColor];
+    self.badgeTextFont = [UIFont systemFontOfSize:12];
+    self.badgePositionAdjustment = UIOffsetZero;
     
-    if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
-        _unselectedTitleAttributes = @{
-                                       NSFontAttributeName: [UIFont systemFontOfSize:12],
-                                       NSForegroundColorAttributeName: [UIColor blackColor],
-                                       };
-    } else {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
-        _unselectedTitleAttributes = @{
-                                       UITextAttributeFont: [UIFont systemFontOfSize:12],
-                                       UITextAttributeTextColor: [UIColor blackColor],
-                                       };
-#endif
+    [self setupContentView];
+}
+
+#pragma mark - State
+
+- (void)setSelected:(BOOL)selected {
+    [super setSelected:selected];
+    
+    [self setupImageForState:selected];
+    [self setupTitleWithValue:_title forState:selected];
+}
+
+- (void)setupImageForState:(BOOL)isSelected {
+    self.imageView.image = isSelected ? [self selectedImage] : [self unselectedImage];
+}
+
+- (void)setupTitleWithValue:(nullable NSString *)title forState:(BOOL)isSelected {
+    NSDictionary *attributes = isSelected ? [self selectedTitleAttributes] : [self unselectedTitleAttributes];
+    self.titleLabel.attributedText = [[NSAttributedString alloc] initWithString:title ? : @""
+                                                                     attributes:attributes];
+}
+
+#pragma mark - UI Elements
+
+- (UIImageView *)imageView {
+    if (_imageView == nil) {
+        _imageView = [UIImageView new];
+        _imageView.contentMode = UIViewContentModeScaleAspectFit;
+        _imageView.userInteractionEnabled = NO;
     }
     
-    _selectedTitleAttributes = [_unselectedTitleAttributes copy];
-    _badgeBackgroundColor = [UIColor redColor];
-    _badgeTextColor = [UIColor whiteColor];
-    _badgeTextFont = [UIFont systemFontOfSize:12];
-    _badgePositionAdjustment = UIOffsetZero;
+    return _imageView;
 }
+
+- (UILabel *)titleLabel {
+    if (_titleLabel == nil) {
+        _titleLabel = [UILabel new];
+        _titleLabel.numberOfLines = 0;
+        _titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+        _titleLabel.userInteractionEnabled = NO;
+    }
+    
+    return _titleLabel;
+}
+
+- (void)setupContentView {
+    UIStackView *contentView = [[UIStackView alloc] initWithArrangedSubviews:@[self.imageView, self.titleLabel]];
+    contentView.axis = UILayoutConstraintAxisHorizontal;
+    contentView.spacing = self.imageTitleOffset;
+    contentView.alignment = UIStackViewAlignmentCenter;
+    contentView.distribution = UIStackViewDistributionEqualSpacing;
+    contentView.userInteractionEnabled = NO;
+    [self addSubview:contentView];
+    
+    // setup Content View constraints
+    contentView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:contentView
+                                                     attribute:NSLayoutAttributeTop
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeTop
+                                                    multiplier:1
+                                                      constant:self.contentOffset.top]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self
+                                                     attribute:NSLayoutAttributeBottom
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:contentView
+                                                     attribute:NSLayoutAttributeBottom
+                                                    multiplier:1
+                                                      constant:self.contentOffset.bottom]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:contentView
+                                                     attribute:NSLayoutAttributeLeading
+                                                     relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeLeading
+                                                    multiplier:1
+                                                      constant:self.contentOffset.left]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self
+                                                     attribute:NSLayoutAttributeTrailing
+                                                     relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                                        toItem:contentView
+                                                     attribute:NSLayoutAttributeTrailing
+                                                    multiplier:1
+                                                      constant:self.contentOffset.right]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:contentView
+                                                     attribute:NSLayoutAttributeCenterX
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeCenterX
+                                                    multiplier:1
+                                                      constant:0]];
+    
+    // setup Image View constraints
+    [self.imageView addConstraint:[NSLayoutConstraint constraintWithItem:self.imageView
+                                                               attribute:NSLayoutAttributeHeight
+                                                               relatedBy:NSLayoutRelationEqual
+                                                                  toItem:nil
+                                                               attribute:nil
+                                                              multiplier:1
+                                                                constant:24]];
+    
+    [self.imageView addConstraint:[NSLayoutConstraint constraintWithItem:self.imageView
+                                                               attribute:NSLayoutAttributeWidth
+                                                               relatedBy:NSLayoutRelationEqual
+                                                                  toItem:nil
+                                                               attribute:nil
+                                                              multiplier:1
+                                                                constant:24]];
+}
+
+- (void)layoutSubviews {
+     [self.titleLabel setNeedsUpdateConstraints];
+     [super layoutSubviews];
+ }
+
+#pragma mark - UIViewRendering
 
 - (void)drawRect:(CGRect)rect {
     CGSize frameSize = self.frame.size;
-    CGSize imageSize = CGSizeZero;
-    CGSize titleSize = CGSizeZero;
-    NSDictionary *titleAttributes = nil;
-    UIImage *backgroundImage = nil;
-    UIImage *image = nil;
-    CGFloat imageStartingY = 0.0f;
-    
-    if ([self isSelected]) {
-        image = [self selectedImage];
-        backgroundImage = [self selectedBackgroundImage];
-        titleAttributes = [self selectedTitleAttributes];
-        
-        if (!titleAttributes) {
-            titleAttributes = [self unselectedTitleAttributes];
-        }
-    } else {
-        image = [self unselectedImage];
-        backgroundImage = [self unselectedBackgroundImage];
-        titleAttributes = [self unselectedTitleAttributes];
-    }
-    
-    imageSize = [image size];
+    UIImage *backgroundImage = self.isSelected ? [self selectedBackgroundImage] : [self unselectedBackgroundImage];
     
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSaveGState(context);
     
     [backgroundImage drawInRect:self.bounds];
     
-    // Draw image and title
-    
-    if (![_title length]) {
-        [image drawInRect:CGRectMake(roundf(frameSize.width / 2 - imageSize.width / 2) +
-                                     _imagePositionAdjustment.horizontal,
-                                     roundf(frameSize.height / 2 - imageSize.height / 2) +
-                                     _imagePositionAdjustment.vertical,
-                                     imageSize.width, imageSize.height)];
-    } else {
-        
-        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
-            titleSize = [_title boundingRectWithSize:CGSizeMake(frameSize.width, 20)
-                                                    options:NSStringDrawingUsesLineFragmentOrigin
-                                                 attributes:titleAttributes
-                                                    context:nil].size;
-            
-            imageStartingY = roundf((frameSize.height - imageSize.height - titleSize.height) / 2);
-            
-            [image drawInRect:CGRectMake(roundf(frameSize.width / 2 - imageSize.width / 2) +
-                                         _imagePositionAdjustment.horizontal,
-                                         imageStartingY + _imagePositionAdjustment.vertical,
-                                         imageSize.width, imageSize.height)];
-            
-            CGContextSetFillColorWithColor(context, [titleAttributes[NSForegroundColorAttributeName] CGColor]);
-            
-            [_title drawInRect:CGRectMake(roundf(frameSize.width / 2 - titleSize.width / 2) +
-                                          _titlePositionAdjustment.horizontal,
-                                          imageStartingY + imageSize.height + _titlePositionAdjustment.vertical,
-                                          titleSize.width, titleSize.height)
-                withAttributes:titleAttributes];
-        } else {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
-            titleSize = [_title sizeWithFont:titleAttributes[UITextAttributeFont]
-                           constrainedToSize:CGSizeMake(frameSize.width, 20)];
-            UIOffset titleShadowOffset = [titleAttributes[UITextAttributeTextShadowOffset] UIOffsetValue];
-            imageStartingY = roundf((frameSize.height - imageSize.height - titleSize.height) / 2);
-            
-            [image drawInRect:CGRectMake(roundf(frameSize.width / 2 - imageSize.width / 2) +
-                                         _imagePositionAdjustment.horizontal,
-                                         imageStartingY + _imagePositionAdjustment.vertical,
-                                         imageSize.width, imageSize.height)];
-            
-            CGContextSetFillColorWithColor(context, [titleAttributes[UITextAttributeTextColor] CGColor]);
-            
-            UIColor *shadowColor = titleAttributes[UITextAttributeTextShadowColor];
-            
-            if (shadowColor) {
-                CGContextSetShadowWithColor(context, CGSizeMake(titleShadowOffset.horizontal, titleShadowOffset.vertical),
-                                            1.0, [shadowColor CGColor]);
-            }
-            
-            [_title drawInRect:CGRectMake(roundf(frameSize.width / 2 - titleSize.width / 2) +
-                                          _titlePositionAdjustment.horizontal,
-                                          imageStartingY + imageSize.height + _titlePositionAdjustment.vertical,
-                                          titleSize.width, titleSize.height)
-                      withFont:titleAttributes[UITextAttributeFont]
-                 lineBreakMode:NSLineBreakByTruncatingTail];
-#endif
-        }
-    }
-    
     // Draw badges
-    
     if ([self badgeValue]) {
         CGSize badgeSize = CGSizeZero;
         
-        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
-            badgeSize = [_badgeValue boundingRectWithSize:CGSizeMake(frameSize.width, 20)
-                                                  options:NSStringDrawingUsesLineFragmentOrigin
-                                               attributes:@{NSFontAttributeName: [self badgeTextFont]}
-                                                  context:nil].size;
-        } else {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
-            badgeSize = [_badgeValue sizeWithFont:[self badgeTextFont]
-                                constrainedToSize:CGSizeMake(frameSize.width, 20)];
-#endif
-        }
+        badgeSize = [_badgeValue boundingRectWithSize:CGSizeMake(frameSize.width, self.badgeTextFont.pointSize + 6)
+                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                           attributes:@{ NSFontAttributeName: self.badgeTextFont }
+                                              context:nil].size;
         
         CGFloat textOffset = 2.0f;
         
@@ -202,49 +224,55 @@
             badgeSize = CGSizeMake(badgeSize.height, badgeSize.height);
         }
         
-        CGRect badgeBackgroundFrame = CGRectMake(roundf(frameSize.width / 2 + (image.size.width / 2) * 0.9) +
-                                                 [self badgePositionAdjustment].horizontal,
+        CGRect badgeBackgroundFrame = CGRectMake(textOffset + [self badgePositionAdjustment].horizontal,
                                                  textOffset + [self badgePositionAdjustment].vertical,
-                                                 badgeSize.width + 2 * textOffset, badgeSize.height + 2 * textOffset);
+                                                 badgeSize.width + 2 * textOffset,
+                                                 badgeSize.height + 2 * textOffset);
         
         if ([self badgeBackgroundColor]) {
             CGContextSetFillColorWithColor(context, [[self badgeBackgroundColor] CGColor]);
-            
             CGContextFillEllipseInRect(context, badgeBackgroundFrame);
+            
         } else if ([self badgeBackgroundImage]) {
             [[self badgeBackgroundImage] drawInRect:badgeBackgroundFrame];
         }
         
         CGContextSetFillColorWithColor(context, [[self badgeTextColor] CGColor]);
         
-        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1) {
-            NSMutableParagraphStyle *badgeTextStyle = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
-            [badgeTextStyle setLineBreakMode:NSLineBreakByWordWrapping];
-            [badgeTextStyle setAlignment:NSTextAlignmentCenter];
-            
-            NSDictionary *badgeTextAttributes = @{
-                                                  NSFontAttributeName: [self badgeTextFont],
-                                                  NSForegroundColorAttributeName: [self badgeTextColor],
-                                                  NSParagraphStyleAttributeName: badgeTextStyle,
-                                                  };
-            
-            [[self badgeValue] drawInRect:CGRectMake(CGRectGetMinX(badgeBackgroundFrame) + textOffset,
-                                                     CGRectGetMinY(badgeBackgroundFrame) + textOffset,
-                                                     badgeSize.width, badgeSize.height)
-                withAttributes:badgeTextAttributes];
-        } else {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
-            [[self badgeValue] drawInRect:CGRectMake(CGRectGetMinX(badgeBackgroundFrame) + textOffset,
-                                                     CGRectGetMinY(badgeBackgroundFrame) + textOffset,
-                                                     badgeSize.width, badgeSize.height)
-                                 withFont:[self badgeTextFont]
-                            lineBreakMode:NSLineBreakByTruncatingTail
-                                alignment:NSTextAlignmentCenter];
-#endif
-        }
+        NSMutableParagraphStyle *badgeTextStyle = [[NSMutableParagraphStyle defaultParagraphStyle] mutableCopy];
+        [badgeTextStyle setLineBreakMode:NSLineBreakByWordWrapping];
+        [badgeTextStyle setAlignment:NSTextAlignmentCenter];
+        
+        NSDictionary *badgeTextAttributes = @{
+            NSFontAttributeName: [self badgeTextFont],
+            NSForegroundColorAttributeName: [self badgeTextColor],
+            NSParagraphStyleAttributeName: badgeTextStyle,
+        };
+        
+        [[self badgeValue] drawInRect:CGRectMake(CGRectGetMinX(badgeBackgroundFrame) + textOffset,
+                                                 CGRectGetMinY(badgeBackgroundFrame) + textOffset,
+                                                 badgeSize.width, badgeSize.height)
+                       withAttributes:badgeTextAttributes];
     }
     
     CGContextRestoreGState(context);
+}
+
+- (void)setTitle:(NSString *)title {
+    _title = title;
+    
+    [self setupTitleWithValue:title forState:self.isSelected];
+}
+
+#pragma mark - Title configuration
+
+- (void)setUnselectedTitleAttributes:(nullable NSDictionary *)unselectedAttributes
+                  selectedAttributes:(nullable NSDictionary *)selectedAttributes {
+    
+    self.unselectedTitleAttributes = [unselectedAttributes copy];
+    self.selectedTitleAttributes = selectedAttributes ? [selectedAttributes copy] : [unselectedAttributes copy];
+    
+    [self setupTitleWithValue:_title forState:self.state];
 }
 
 #pragma mark - Image configuration
@@ -265,6 +293,8 @@
     if (unselectedImage && (unselectedImage != [self unselectedImage])) {
         [self setUnselectedImage:unselectedImage];
     }
+    
+    [self setupImageForState:self.isSelected];
 }
 
 - (void)setBadgeValue:(NSString *)badgeValue {
@@ -295,14 +325,12 @@
 
 #pragma mark - Accessibility
 
-- (NSString *)accessibilityLabel{
+- (NSString *)accessibilityLabel {
     return @"tabbarItem";
 }
 
-- (BOOL)isAccessibilityElement
-{
+- (BOOL)isAccessibilityElement {
     return YES;
 }
-
 
 @end

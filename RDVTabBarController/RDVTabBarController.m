@@ -289,7 +289,7 @@
 
 @implementation UIViewController (RDVTabBarControllerItem)
 
-- (RDVTabBarController *)rdv_tabBarController {
+- (nullable RDVTabBarController *)rdv_tabBarController {
     RDVTabBarController *tabBarController = objc_getAssociatedObject(self, @selector(rdv_tabBarController));
     
     if (!tabBarController && self.parentViewController) {
@@ -299,7 +299,7 @@
     return tabBarController;
 }
 
-- (RDVTabBarItem *)rdv_tabBarItem {
+- (nullable RDVTabBarItem *)rdv_tabBarItem {
     RDVTabBarController *tabBarController = [self rdv_tabBarController];
     NSInteger index = [tabBarController indexForViewController:self];
     return [[[tabBarController tabBar] items] objectAtIndex:index];

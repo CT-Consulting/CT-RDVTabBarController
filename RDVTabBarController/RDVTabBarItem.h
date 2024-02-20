@@ -25,6 +25,11 @@
 
 @interface RDVTabBarItem : UIControl
 
+/// Tab bar item's Image View
+@property (strong, nonatomic, nonnull) UIImageView *imageView;
+/// Tab bar item's title Label
+@property (strong, nonatomic, nonnull) UILabel *titleLabel;
+
 /**
  * itemHeight is an optional property. When set it is used instead of tabBar's height.
  */
@@ -38,31 +43,16 @@
 @property (nonatomic, copy) NSString *title;
 
 /**
- * The offset for the rectangle around the tab bar item's title.
- */
-@property (nonatomic) UIOffset titlePositionAdjustment;
-
-/**
  * For title's text attributes see
  * https://developer.apple.com/library/ios/documentation/uikit/reference/NSString_UIKit_Additions/Reference/Reference.html
  */
-
-/**
- * The title attributes dictionary used for tab bar item's unselected state.
- */
-@property (copy) NSDictionary *unselectedTitleAttributes;
-
-/**
- * The title attributes dictionary used for tab bar item's selected state.
- */
-@property (copy) NSDictionary *selectedTitleAttributes;
+/// The title attributes dictionary used for tab bar item's
+/// @param unselectedAttributes dictionary for unselected state
+/// @param selectedAttributes dictionary for selected state
+- (void)setUnselectedTitleAttributes:(nullable NSDictionary *)unselectedAttributes
+                  selectedAttributes:(nullable NSDictionary *)selectedAttributes;
 
 #pragma mark - Image configuration
-
-/**
- * The offset for the rectangle around the tab bar item's image.
- */
-@property (nonatomic) UIOffset imagePositionAdjustment;
 
 /**
  * The image used for tab bar item's selected state.
