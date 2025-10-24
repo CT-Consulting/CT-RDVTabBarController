@@ -299,7 +299,7 @@
 
 - (nullable RDVTabBarController *)rdv_tabBarController {
     RDVWeakBox *box = objc_getAssociatedObject(self, @selector(rdv_tabBarController));
-    RDVTabBarController *tabBarController = (RDVTabBarController *)box.value;
+    RDVTabBarController *tabBarController = box.value;
 
     if (!tabBarController && self.parentViewController) {
         tabBarController = [self.parentViewController rdv_tabBarController];
