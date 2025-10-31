@@ -25,6 +25,12 @@
 #import "RDVTabBarItem.h"
 #import <objc/runtime.h>
 
+@interface RDVWeakBox : NSObject
+@property (nonatomic, weak) id value;
+@end
+@implementation RDVWeakBox
+@end
+
 @interface UIViewController (RDVTabBarControllerItemInternal)
 
 - (void)rdv_setTabBarController:(RDVTabBarController *)tabBarController;
@@ -282,7 +288,9 @@
 @implementation UIViewController (RDVTabBarControllerItemInternal)
 
 - (void)rdv_setTabBarController:(RDVTabBarController *)tabBarController {
-    objc_setAssociatedObject(self, @selector(rdv_tabBarController), tabBarController, OBJC_ASSOCIATION_ASSIGN);
+    RDVWeakBox *box = [RDVWeakBox new];
+    box.value = tabBarController;
+    objc_setAssociatedObject(self, @selector(rdv_tabBarController), box, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
@@ -290,12 +298,18 @@
 @implementation UIViewController (RDVTabBarControllerItem)
 
 - (nullable RDVTabBarController *)rdv_tabBarController {
-    RDVTabBarController *tabBarController = objc_getAssociatedObject(self, @selector(rdv_tabBarController));
-    
+    RDVWeakBox *box = objc_getAssociatedObject(self, @selector(rdv_tabBarController));
+    RDVTabBarController *tabBarController = box.value;
+
     if (!tabBarController && self.parentViewController) {
         tabBarController = [self.parentViewController rdv_tabBarController];
     }
-    
+
+    if (tabBarController == nil && box != nil) {
+        // Clear stale box to avoid future lookups returning garbage
+        objc_setAssociatedObject(self, @selector(rdv_tabBarController), nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
     return tabBarController;
 }
 
