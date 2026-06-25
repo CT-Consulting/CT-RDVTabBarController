@@ -2,6 +2,9 @@
 # CT-RDVTabBarController
 
 This is a slightly upgraded version of RDVTabBarController where you can scroll tab bar buttons.
+Это приватная копия!!!!
+Публичная версия доступна по ссылке https://github.com/ctsf/CT-RDVTabBarController
+И Sample podspec смотрит на публичную версию!!!!
 
 # RDVTabBarController
 
