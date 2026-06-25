@@ -208,9 +208,6 @@
     
     void (^block)() = ^{
         CGSize viewSize = weakSelf.view.bounds.size;
-        CGFloat bottomPadding = (@available(iOS 11.0, *)) ? UIApplication.sharedApplication.keyWindow.safeAreaInsets.bottom : 0.0f;
-        
-        viewSize.height -= bottomPadding;
         CGFloat tabBarStartingY = viewSize.height;
         CGFloat contentViewHeight = viewSize.height;
         CGFloat tabBarHeight = CGRectGetHeight([[weakSelf tabBar] frame]) ?: 49;
